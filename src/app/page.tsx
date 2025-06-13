@@ -56,16 +56,26 @@ const availableIcons = {
   Film,
 } as const;
 
+// Helper to get local date in YYYY-MM-DD
+function getLocalDateString() {
+  const now = new Date();
+  return (
+    now.getFullYear() +
+    "-" +
+    String(now.getMonth() + 1).padStart(2, "0") +
+    "-" +
+    String(now.getDate()).padStart(2, "0")
+  );
+}
+
 export default function Home() {
   const [notes, setNotes] = useState<MoneyNote[]>([]);
   const [categories, setCategories] = useState<CustomCategory[]>([]);
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [selectedDate, setSelectedDate] = useState(getLocalDateString());
   const [formData, setFormData] = useState<MoneyNoteFormData>({
     amount: 0,
     description: "",
-    date: new Date().toISOString().split("T")[0],
+    date: getLocalDateString(),
     time: new Date().toLocaleTimeString("en-US", {
       hour12: false,
       hour: "2-digit",
@@ -94,6 +104,7 @@ export default function Home() {
     type: "note",
     id: "",
   });
+  const [editingNote, setEditingNote] = useState<MoneyNote | null>(null);
 
   useEffect(() => {
     setNotes(getNotesByDate(selectedDate));
@@ -102,13 +113,26 @@ export default function Home() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newNote: MoneyNote = {
-      ...formData,
-      id: Date.now().toString(),
-      date: selectedDate,
-    };
-    saveMoneyNote(newNote);
-    setNotes([...notes, newNote]);
+    if (editingNote) {
+      // Edit mode
+      const updatedNote: MoneyNote = {
+        ...editingNote,
+        ...formData,
+        date: selectedDate,
+      };
+      saveMoneyNote(updatedNote);
+      setNotes(notes.map((n) => (n.id === updatedNote.id ? updatedNote : n)));
+      setEditingNote(null);
+    } else {
+      // Add mode
+      const newNote: MoneyNote = {
+        ...formData,
+        id: Date.now().toString(),
+        date: selectedDate,
+      };
+      saveMoneyNote(newNote);
+      setNotes([...notes, newNote]);
+    }
     setFormData({
       amount: 0,
       description: "",
@@ -369,12 +393,21 @@ export default function Home() {
                               {note.amount.toLocaleString()}
                             </p>
                           </div>
-                          <button
-                            onClick={() => handleDelete(note.id)}
-                            className="text-red-400 hover:text-red-300 p-2 hover:bg-slate-800 rounded-lg transition-colors"
-                          >
-                            <Trash2 size={18} />
-                          </button>
+                          <div className="flex flex-row justify-center items-center">
+                            <button
+                              onClick={() => setEditingNote(note)}
+                              className="text-blue-400 hover:text-blue-300 p-2 hover:bg-slate-800 rounded-lg transition-colors"
+                              title="Edit Note"
+                            >
+                              <Pencil size={18} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(note.id)}
+                              className="text-red-400 hover:text-red-300 pl-2 hover:bg-slate-800 rounded-lg transition-colors"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -385,20 +418,36 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Add Note Modal */}
-      {isModalOpen && (
+      {/* Add/Edit Note Modal */}
+      {(isModalOpen || editingNote) && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-slate-900 w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl border border-slate-800 max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-white">Add New Note</h2>
+              <h2 className="text-xl font-bold text-white">
+                {editingNote ? "Edit Note" : "Add New Note"}
+              </h2>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setEditingNote(null);
+                  setFormData({
+                    amount: 0,
+                    description: "",
+                    date: selectedDate,
+                    time: new Date().toLocaleTimeString("en-US", {
+                      hour12: false,
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }),
+                    category: "",
+                  });
+                  setAmountInput("");
+                }}
                 className="text-slate-400 hover:text-slate-200 p-2 hover:bg-slate-800 rounded-full transition-colors"
               >
                 <X size={20} />
               </button>
             </div>
-
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -436,7 +485,6 @@ export default function Home() {
                   />
                 </div>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">
                   Description
@@ -451,7 +499,6 @@ export default function Home() {
                   required
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">
                   Category
@@ -472,12 +519,11 @@ export default function Home() {
                   ))}
                 </select>
               </div>
-
               <button
                 type="submit"
                 className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Save Note
+                {editingNote ? "Save Changes" : "Save Note"}
               </button>
             </form>
           </div>
