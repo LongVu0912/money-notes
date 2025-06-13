@@ -220,23 +220,25 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-900">
+    <main className="min-h-screen bg-slate-900">
       {/* Header */}
-      <div className="bg-gray-800 shadow-sm">
+      <div className="bg-slate-900 shadow-sm border-b border-slate-800">
         <div className="max-w-md mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-white">Money Notes</h1>
+            <h1 className="text-2xl font-bold text-white tracking-tight">
+              Money Notes
+            </h1>
             <div className="flex items-center space-x-2">
               <Link
                 href="/statistics"
-                className="text-blue-400 hover:text-blue-300 p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                className="text-cyan-400 hover:text-cyan-300 p-2 hover:bg-slate-800 rounded-lg transition-colors"
                 title="View Statistics"
               >
                 <BarChart2 size={20} />
               </Link>
               <button
                 onClick={() => setIsSettingsOpen(true)}
-                className="text-blue-400 hover:text-blue-300 p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                className="text-cyan-400 hover:text-cyan-300 p-2 hover:bg-slate-800 rounded-lg transition-colors"
               >
                 <Settings size={20} />
               </button>
@@ -249,20 +251,20 @@ export default function Home() {
                 date.setDate(date.getDate() - 1);
                 setSelectedDate(date.toISOString().split("T")[0]);
               }}
-              className="p-2 hover:bg-gray-700 rounded-lg transition-colors text-gray-300"
+              className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-300"
             >
               <ChevronLeft size={20} />
             </button>
             <div className="flex-1 relative">
               <Calendar
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"
                 size={18}
               />
               <input
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full p-2 pl-10 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-2 pl-10 border border-slate-800 rounded-lg bg-slate-800 text-white focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 placeholder:text-slate-400"
               />
             </div>
             <button
@@ -271,7 +273,7 @@ export default function Home() {
                 date.setDate(date.getDate() + 1);
                 setSelectedDate(date.toISOString().split("T")[0]);
               }}
-              className="p-2 hover:bg-gray-700 rounded-lg transition-colors text-gray-300"
+              className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-300"
             >
               <ChevronRight size={20} />
             </button>
@@ -282,22 +284,21 @@ export default function Home() {
       {/* Main Content */}
       <div className="max-w-md mx-auto px-4 py-6">
         {/* Date Summary */}
-        <div className="bg-gradient-to-r from-blue-700 to-blue-800 rounded-xl shadow-sm p-4 mb-6 text-white">
+        <div className="bg-gradient-to-r from-cyan-900 to-cyan-950 rounded-xl shadow-sm p-4 mb-6 text-white border border-slate-800">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-lg font-semibold mb-0.5">
+              <h1 className="text-lg font-semibold mb-0.5 tracking-tight">
                 {formatDate(selectedDate)}
               </h1>
-              <h4 className="text-md font-medium mb-0.5">
+              <h4 className="text-md font-medium mb-0.5 text-cyan-300">
                 {notes
                   .reduce((sum, note) => sum + note.amount, 0)
                   .toLocaleString()}{" "}
-                VND
               </h4>
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-white text-blue-700 p-2 rounded-lg hover:bg-blue-50 transition-colors shadow-sm"
+              className="bg-cyan-400 text-white p-2 rounded-lg hover:bg-cyan-500 transition-colors shadow-sm"
             >
               <Plus size={20} />
             </button>
@@ -307,15 +308,15 @@ export default function Home() {
         {/* Notes List */}
         <div className="space-y-6">
           {notes.length === 0 ? (
-            <div className="text-center py-12 bg-gray-800 rounded-xl shadow-sm">
-              <p className="text-gray-400">No notes for this date</p>
+            <div className="text-center py-12 bg-slate-900 rounded-xl shadow-sm border border-slate-800">
+              <p className="text-slate-400">No notes for this date</p>
             </div>
           ) : (
             Object.entries(groupNotesByTimeRange(notes)).map(
               ([range, rangeNotes]) =>
                 rangeNotes.length > 0 && (
                   <div key={range} className="space-y-3">
-                    <div className="flex items-center space-x-2 text-gray-400 mb-2">
+                    <div className="flex items-center space-x-2 text-slate-400 mb-2">
                       {React.createElement(
                         timeRangeLabels[range as keyof typeof timeRangeLabels]
                           .icon,
@@ -331,7 +332,7 @@ export default function Home() {
                     {rangeNotes.map((note) => (
                       <div
                         key={note.id}
-                        className="bg-gray-800 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                        className="bg-slate-800 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-slate-700"
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
@@ -354,23 +355,23 @@ export default function Home() {
                                   }
                                 )}
                               </div>
-                              <span className="text-base text-gray-400">
+                              <span className="text-base text-slate-300">
                                 {getCategoryName(note.category)}
                               </span>
-                              <span className="text-sm text-gray-500">
+                              <span className="text-sm text-slate-400">
                                 {note.time}
                               </span>
                             </div>
-                            <p className="font-medium text-white">
+                            <p className="font-medium text-sm text-white">
                               {note.description}
                             </p>
                             <p className="text-md font-bold text-white mt-1">
-                              {note.amount.toLocaleString()} VND
+                              {note.amount.toLocaleString()}
                             </p>
                           </div>
                           <button
                             onClick={() => handleDelete(note.id)}
-                            className="text-red-400 hover:text-red-300 p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                            className="text-red-400 hover:text-red-300 p-2 hover:bg-slate-800 rounded-lg transition-colors"
                           >
                             <Trash2 size={18} />
                           </button>
@@ -386,13 +387,13 @@ export default function Home() {
 
       {/* Add Note Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-800 w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-slate-900 w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl border border-slate-800">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-white">Add New Note</h2>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-gray-300 p-2 hover:bg-gray-700 rounded-full transition-colors"
+                className="text-slate-400 hover:text-slate-200 p-2 hover:bg-slate-800 rounded-full transition-colors"
               >
                 <X size={20} />
               </button>
@@ -401,7 +402,7 @@ export default function Home() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
                     Amount
                   </label>
                   <input
@@ -417,13 +418,11 @@ export default function Home() {
                         });
                       }
                     }}
-                    className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="0"
-                    required
+                    className="w-full p-2 rounded-lg bg-slate-800 text-white border border-slate-800 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 placeholder:text-slate-400"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
                     Time
                   </label>
                   <input
@@ -439,7 +438,7 @@ export default function Home() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   Description
                 </label>
                 <input
@@ -454,7 +453,7 @@ export default function Home() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   Category
                 </label>
                 <select
