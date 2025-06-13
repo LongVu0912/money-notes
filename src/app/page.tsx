@@ -37,7 +37,9 @@ import {
   Download,
   Upload,
   Pencil,
+  BarChart2,
 } from "lucide-react";
+import Link from "next/link";
 
 type IconName = keyof typeof availableIcons;
 
@@ -82,6 +84,16 @@ export default function Home() {
   const [editingCategory, setEditingCategory] = useState<CustomCategory | null>(
     null
   );
+  const [confirmDelete, setConfirmDelete] = useState<{
+    isOpen: boolean;
+    type: "note" | "category";
+    id: string;
+    name?: string;
+  }>({
+    isOpen: false,
+    type: "note",
+    id: "",
+  });
 
   useEffect(() => {
     setNotes(getNotesByDate(selectedDate));
@@ -113,8 +125,13 @@ export default function Home() {
   };
 
   const handleDelete = (id: string) => {
-    deleteMoneyNote(id);
-    setNotes(notes.filter((note) => note.id !== id));
+    const note = notes.find((n) => n.id === id);
+    setConfirmDelete({
+      isOpen: true,
+      type: "note",
+      id,
+      name: note?.description,
+    });
   };
 
   const handleAddCategory = (e: React.FormEvent) => {
@@ -133,8 +150,24 @@ export default function Home() {
   };
 
   const handleDeleteCategory = (id: string) => {
-    deleteCategory(id);
-    setCategories(categories.filter((cat) => cat.id !== id));
+    const category = categories.find((c) => c.id === id);
+    setConfirmDelete({
+      isOpen: true,
+      type: "category",
+      id,
+      name: category?.name,
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    if (confirmDelete.type === "note") {
+      deleteMoneyNote(confirmDelete.id);
+      setNotes(notes.filter((note) => note.id !== confirmDelete.id));
+    } else {
+      deleteCategory(confirmDelete.id);
+      setCategories(categories.filter((cat) => cat.id !== confirmDelete.id));
+    }
+    setConfirmDelete({ isOpen: false, type: "note", id: "" });
   };
 
   const getCategoryColor = (categoryId: string) => {
@@ -187,18 +220,27 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-900">
       {/* Header */}
-      <div className="bg-white shadow-sm">
+      <div className="bg-gray-800 shadow-sm">
         <div className="max-w-md mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">Money Notes</h1>
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              className="text-blue-600 hover:text-blue-700 p-2 hover:bg-blue-50 rounded-lg transition-colors"
-            >
-              <Settings size={20} />
-            </button>
+            <h1 className="text-2xl font-bold text-white">Money Notes</h1>
+            <div className="flex items-center space-x-2">
+              <Link
+                href="/statistics"
+                className="text-blue-400 hover:text-blue-300 p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                title="View Statistics"
+              >
+                <BarChart2 size={20} />
+              </Link>
+              <button
+                onClick={() => setIsSettingsOpen(true)}
+                className="text-blue-400 hover:text-blue-300 p-2 hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <Settings size={20} />
+              </button>
+            </div>
           </div>
           <div className="mt-4 flex items-center space-x-2">
             <button
@@ -207,7 +249,7 @@ export default function Home() {
                 date.setDate(date.getDate() - 1);
                 setSelectedDate(date.toISOString().split("T")[0]);
               }}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-700 rounded-lg transition-colors text-gray-300"
             >
               <ChevronLeft size={20} />
             </button>
@@ -220,7 +262,7 @@ export default function Home() {
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full p-2 pl-10 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-2 pl-10 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             <button
@@ -229,7 +271,7 @@ export default function Home() {
                 date.setDate(date.getDate() + 1);
                 setSelectedDate(date.toISOString().split("T")[0]);
               }}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-700 rounded-lg transition-colors text-gray-300"
             >
               <ChevronRight size={20} />
             </button>
@@ -240,25 +282,22 @@ export default function Home() {
       {/* Main Content */}
       <div className="max-w-md mx-auto px-4 py-6">
         {/* Date Summary */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-sm p-4 mb-6 text-white">
+        <div className="bg-gradient-to-r from-blue-700 to-blue-800 rounded-xl shadow-sm p-4 mb-6 text-white">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-lg font-semibold mb-0.5">
                 {formatDate(selectedDate)}
               </h1>
-              <h4 className="text-lg font-medium mb-0.5">
+              <h4 className="text-md font-medium mb-0.5">
                 {notes
                   .reduce((sum, note) => sum + note.amount, 0)
                   .toLocaleString()}{" "}
                 VND
               </h4>
-              {/* <p className="text-blue-100 text-xs">
-                {notes.length} {notes.length === 1 ? "note" : "notes"}
-              </p> */}
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-white text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition-colors shadow-sm"
+              className="bg-white text-blue-700 p-2 rounded-lg hover:bg-blue-50 transition-colors shadow-sm"
             >
               <Plus size={20} />
             </button>
@@ -268,15 +307,15 @@ export default function Home() {
         {/* Notes List */}
         <div className="space-y-6">
           {notes.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-xl shadow-sm">
-              <p className="text-gray-500">No notes for this date</p>
+            <div className="text-center py-12 bg-gray-800 rounded-xl shadow-sm">
+              <p className="text-gray-400">No notes for this date</p>
             </div>
           ) : (
             Object.entries(groupNotesByTimeRange(notes)).map(
               ([range, rangeNotes]) =>
                 rangeNotes.length > 0 && (
                   <div key={range} className="space-y-3">
-                    <div className="flex items-center space-x-2 text-gray-600 mb-2">
+                    <div className="flex items-center space-x-2 text-gray-400 mb-2">
                       {React.createElement(
                         timeRangeLabels[range as keyof typeof timeRangeLabels]
                           .icon,
@@ -292,7 +331,7 @@ export default function Home() {
                     {rangeNotes.map((note) => (
                       <div
                         key={note.id}
-                        className="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                        className="bg-gray-800 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow"
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
@@ -315,23 +354,23 @@ export default function Home() {
                                   }
                                 )}
                               </div>
-                              <span className="text-sm text-gray-600">
+                              <span className="text-base text-gray-400">
                                 {getCategoryName(note.category)}
                               </span>
-                              <span className="text-sm text-gray-400">
+                              <span className="text-sm text-gray-500">
                                 {note.time}
                               </span>
                             </div>
-                            <p className="font-medium text-gray-900">
+                            <p className="font-medium text-white">
                               {note.description}
                             </p>
-                            <p className="text-lg font-bold text-gray-900 mt-1">
+                            <p className="text-md font-bold text-white mt-1">
                               {note.amount.toLocaleString()} VND
                             </p>
                           </div>
                           <button
                             onClick={() => handleDelete(note.id)}
-                            className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                            className="text-red-400 hover:text-red-300 p-2 hover:bg-gray-700 rounded-lg transition-colors"
                           >
                             <Trash2 size={18} />
                           </button>
@@ -347,13 +386,13 @@ export default function Home() {
 
       {/* Add Note Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-800 w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Add New Note</h2>
+              <h2 className="text-xl font-bold text-white">Add New Note</h2>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="text-gray-400 hover:text-gray-300 p-2 hover:bg-gray-700 rounded-full transition-colors"
               >
                 <X size={20} />
               </button>
@@ -362,7 +401,7 @@ export default function Home() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Amount
                   </label>
                   <input
@@ -378,13 +417,13 @@ export default function Home() {
                         });
                       }
                     }}
-                    className="w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="0"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Time
                   </label>
                   <input
@@ -393,14 +432,14 @@ export default function Home() {
                     onChange={(e) =>
                       setFormData({ ...formData, time: e.target.value })
                     }
-                    className="w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   Description
                 </label>
                 <input
@@ -409,13 +448,13 @@ export default function Home() {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   Category
                 </label>
                 <select
@@ -423,7 +462,7 @@ export default function Home() {
                   onChange={(e) =>
                     setFormData({ ...formData, category: e.target.value })
                   }
-                  className="w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 >
                   <option value="">Select a category</option>
@@ -448,10 +487,10 @@ export default function Home() {
 
       {/* Settings Modal */}
       {isSettingsOpen && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-800 w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Categories</h2>
+              <h2 className="text-xl font-bold text-white">Categories</h2>
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => {
@@ -473,13 +512,13 @@ export default function Home() {
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
                   }}
-                  className="text-blue-600 hover:text-blue-700 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                  className="text-blue-400 hover:text-blue-300 p-2 hover:bg-gray-700 rounded-lg transition-colors"
                   title="Export Settings"
                 >
                   <Download size={20} />
                 </button>
                 <label
-                  className="text-blue-600 hover:text-blue-700 p-2 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                  className="text-blue-400 hover:text-blue-300 p-2 hover:bg-gray-700 rounded-lg transition-colors cursor-pointer"
                   title="Import Settings"
                 >
                   <input
@@ -524,7 +563,7 @@ export default function Home() {
                 </label>
                 <button
                   onClick={() => setIsSettingsOpen(false)}
-                  className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  className="text-gray-400 hover:text-gray-300 p-2 hover:bg-gray-700 rounded-full transition-colors"
                 >
                   <X size={20} />
                 </button>
@@ -533,7 +572,7 @@ export default function Home() {
 
             <form onSubmit={handleAddCategory} className="space-y-4 mb-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   Name
                 </label>
                 <input
@@ -542,14 +581,14 @@ export default function Home() {
                   onChange={(e) =>
                     setNewCategory({ ...newCategory, name: e.target.value })
                   }
-                  className="w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-1 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Color
                   </label>
                   <input
@@ -558,11 +597,11 @@ export default function Home() {
                     onChange={(e) =>
                       setNewCategory({ ...newCategory, color: e.target.value })
                     }
-                    className="w-full h-12 p-1 border rounded-lg bg-gray-50"
+                    className="w-full h-12 p-1 border border-gray-600 rounded-lg bg-gray-700"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Icon
                   </label>
                   <div className="relative">
@@ -574,7 +613,7 @@ export default function Home() {
                           icon: e.target.value as IconName,
                         })
                       }
-                      className="w-full h-12 p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                      className="w-full h-12 p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       {Object.keys(availableIcons).map((iconName) => (
                         <option key={iconName} value={iconName}>
@@ -585,7 +624,7 @@ export default function Home() {
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
                       {React.createElement(
                         availableIcons[newCategory.icon as IconName],
-                        { size: 18 }
+                        { size: 18, className: "text-white" }
                       )}
                     </div>
                   </div>
@@ -604,7 +643,7 @@ export default function Home() {
               {categories.map((category) => (
                 <div
                   key={category.id}
-                  className="flex items-center justify-between p-3 border rounded-lg"
+                  className="flex items-center justify-between p-3 border border-gray-600 rounded-lg bg-gray-700"
                 >
                   <div className="flex items-center space-x-3">
                     <div
@@ -619,19 +658,21 @@ export default function Home() {
                         }
                       )}
                     </div>
-                    <span className="font-medium">{category.name}</span>
+                    <span className="font-medium text-white">
+                      {category.name}
+                    </span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => setEditingCategory(category)}
-                      className="text-blue-600 hover:text-blue-700 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                      className="text-blue-400 hover:text-blue-300 p-2 hover:bg-gray-600 rounded-lg transition-colors"
                       title="Edit Category"
                     >
                       <Pencil size={18} />
                     </button>
                     <button
                       onClick={() => handleDeleteCategory(category.id)}
-                      className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                      className="text-red-400 hover:text-red-300 p-2 hover:bg-gray-600 rounded-lg transition-colors"
                       title="Delete Category"
                     >
                       <Trash2 size={18} />
@@ -646,13 +687,13 @@ export default function Home() {
 
       {/* Edit Category Modal */}
       {editingCategory && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-800 w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Edit Category</h2>
+              <h2 className="text-xl font-bold text-white">Edit Category</h2>
               <button
                 onClick={() => setEditingCategory(null)}
-                className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="text-gray-400 hover:text-gray-300 p-2 hover:bg-gray-700 rounded-full transition-colors"
               >
                 <X size={20} />
               </button>
@@ -674,7 +715,7 @@ export default function Home() {
               className="space-y-4"
             >
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   Name
                 </label>
                 <input
@@ -686,14 +727,14 @@ export default function Home() {
                       name: e.target.value,
                     })
                   }
-                  className="w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-1 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Color
                   </label>
                   <input
@@ -705,11 +746,11 @@ export default function Home() {
                         color: e.target.value,
                       })
                     }
-                    className="w-full h-12 p-1 border rounded-lg bg-gray-50"
+                    className="w-full h-12 p-1 border border-gray-600 rounded-lg bg-gray-700"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Icon
                   </label>
                   <div className="relative">
@@ -721,7 +762,7 @@ export default function Home() {
                           icon: e.target.value as IconName,
                         })
                       }
-                      className="w-full h-12 p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                      className="w-full h-12 p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       {Object.keys(availableIcons).map((iconName) => (
                         <option key={iconName} value={iconName}>
@@ -732,7 +773,7 @@ export default function Home() {
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
                       {React.createElement(
                         availableIcons[editingCategory.icon as IconName],
-                        { size: 18 }
+                        { size: 18, className: "text-white" }
                       )}
                     </div>
                   </div>
@@ -746,6 +787,52 @@ export default function Home() {
                 Save Changes
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {confirmDelete.isOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-800 w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-white">Confirm Delete</h2>
+              <button
+                onClick={() =>
+                  setConfirmDelete({ isOpen: false, type: "note", id: "" })
+                }
+                className="text-gray-400 hover:text-gray-300 p-2 hover:bg-gray-700 rounded-full transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to delete this {confirmDelete.type}?
+              {confirmDelete.name && (
+                <span className="font-medium text-white">
+                  {" "}
+                  &ldquo;{confirmDelete.name}&rdquo;
+                </span>
+              )}
+            </p>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() =>
+                  setConfirmDelete({ isOpen: false, type: "note", id: "" })
+                }
+                className="flex-1 p-3 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors text-white"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="flex-1 bg-red-600 text-white p-3 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}
