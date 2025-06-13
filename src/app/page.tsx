@@ -388,7 +388,7 @@ export default function Home() {
       {/* Add Note Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-slate-900 w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl border border-slate-800 max-h-screen overflow-y-auto">
+          <div className="bg-slate-900 w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl border border-slate-800 max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-white">Add New Note</h2>
               <button
@@ -487,7 +487,7 @@ export default function Home() {
       {/* Settings Modal */}
       {isSettingsOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-800 w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl max-h-screen overflow-y-auto">
+          <div className="bg-gray-800 w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-white">Categories</h2>
               <div className="flex items-center space-x-2">
@@ -687,7 +687,7 @@ export default function Home() {
       {/* Edit Category Modal */}
       {editingCategory && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-800 w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl max-h-screen overflow-y-auto">
+          <div className="bg-gray-800 w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-white">Edit Category</h2>
               <button
@@ -793,7 +793,7 @@ export default function Home() {
       {/* Delete Confirmation Modal */}
       {confirmDelete.isOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-800 w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl max-h-screen overflow-y-auto">
+          <div className="bg-gray-800 w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-white">Confirm Delete</h2>
               <button
