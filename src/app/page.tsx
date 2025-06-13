@@ -111,6 +111,19 @@ export default function Home() {
     setCategories(getCategories());
   }, [selectedDate]);
 
+  useEffect(() => {
+    if (editingNote) {
+      setFormData({
+        amount: editingNote.amount,
+        description: editingNote.description,
+        date: editingNote.date,
+        time: editingNote.time,
+        category: editingNote.category,
+      });
+      setAmountInput(editingNote.amount ? editingNote.amount.toString() : "");
+    }
+  }, [editingNote]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingNote) {
