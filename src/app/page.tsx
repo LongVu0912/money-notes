@@ -1,103 +1,755 @@
-import Image from "next/image";
+"use client";
+
+import React, { useState, useEffect } from "react";
+import {
+  MoneyNote,
+  MoneyNoteFormData,
+  CustomCategory,
+} from "../types/money-note";
+import {
+  saveMoneyNote,
+  deleteMoneyNote,
+  getNotesByDate,
+  getCategories,
+  saveCategory,
+  deleteCategory,
+} from "../utils/storage";
+import {
+  Plus,
+  Calendar,
+  X,
+  Trash2,
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+  Sun,
+  Clock,
+  CupSoda,
+  Moon,
+  Hamburger,
+  ShoppingBag,
+  Utensils,
+  Fuel,
+  Gamepad2 as Game,
+  Train,
+  Coffee,
+  Film,
+  Download,
+  Upload,
+  Pencil,
+} from "lucide-react";
+
+type IconName = keyof typeof availableIcons;
+
+// Create a map of available icons
+const availableIcons = {
+  CupSoda,
+  Hamburger,
+  ShoppingBag,
+  Utensils,
+  Fuel,
+  Game,
+  Train,
+  Coffee,
+  Film,
+} as const;
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [notes, setNotes] = useState<MoneyNote[]>([]);
+  const [categories, setCategories] = useState<CustomCategory[]>([]);
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [formData, setFormData] = useState<MoneyNoteFormData>({
+    amount: 0,
+    description: "",
+    date: new Date().toISOString().split("T")[0],
+    time: new Date().toLocaleTimeString("en-US", {
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    category: "",
+  });
+  const [amountInput, setAmountInput] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [newCategory, setNewCategory] = useState<Omit<CustomCategory, "id">>({
+    name: "",
+    color: "#000000",
+    icon: "ShoppingBag" as IconName,
+  });
+  const [editingCategory, setEditingCategory] = useState<CustomCategory | null>(
+    null
+  );
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    setNotes(getNotesByDate(selectedDate));
+    setCategories(getCategories());
+  }, [selectedDate]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newNote: MoneyNote = {
+      ...formData,
+      id: Date.now().toString(),
+      date: selectedDate,
+    };
+    saveMoneyNote(newNote);
+    setNotes([...notes, newNote]);
+    setFormData({
+      amount: 0,
+      description: "",
+      date: selectedDate,
+      time: new Date().toLocaleTimeString("en-US", {
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      category: "",
+    });
+    setAmountInput("");
+    setIsModalOpen(false);
+  };
+
+  const handleDelete = (id: string) => {
+    deleteMoneyNote(id);
+    setNotes(notes.filter((note) => note.id !== id));
+  };
+
+  const handleAddCategory = (e: React.FormEvent) => {
+    e.preventDefault();
+    const category: CustomCategory = {
+      ...newCategory,
+      id: Date.now().toString(),
+    };
+    saveCategory(category);
+    setCategories([...categories, category]);
+    setNewCategory({
+      name: "",
+      color: "#000000",
+      icon: "ShoppingBag" as IconName,
+    });
+  };
+
+  const handleDeleteCategory = (id: string) => {
+    deleteCategory(id);
+    setCategories(categories.filter((cat) => cat.id !== id));
+  };
+
+  const getCategoryColor = (categoryId: string) => {
+    const category = categories.find((cat) => cat.id === categoryId);
+    return category?.color || "#000000";
+  };
+
+  const getCategoryName = (categoryId: string) => {
+    const category = categories.find((cat) => cat.id === categoryId);
+    return category?.name || "Uncategorized";
+  };
+
+  const getCategoryIcon = (categoryId: string) => {
+    const category = categories.find((cat) => cat.id === categoryId);
+    return category?.icon || "ShoppingBag";
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const getTimeRange = (time: string) => {
+    const [hours] = time.split(":").map(Number);
+    if (hours >= 6 && hours < 12) return "morning";
+    if (hours >= 12 && hours < 18) return "afternoon";
+    return "evening";
+  };
+
+  const groupNotesByTimeRange = (notes: MoneyNote[]) => {
+    const groups = {
+      morning: notes.filter((note) => getTimeRange(note.time) === "morning"),
+      afternoon: notes.filter(
+        (note) => getTimeRange(note.time) === "afternoon"
+      ),
+      evening: notes.filter((note) => getTimeRange(note.time) === "evening"),
+    };
+    return groups;
+  };
+
+  const timeRangeLabels = {
+    morning: { label: "Morning (06:00 - 12:00)", icon: Sun },
+    afternoon: { label: "Afternoon (12:00 - 18:00)", icon: Clock },
+    evening: { label: "Evening (18:00 - 06:00)", icon: Moon },
+  };
+
+  return (
+    <main className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm">
+        <div className="max-w-md mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-gray-900">Money Notes</h1>
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="text-blue-600 hover:text-blue-700 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+            >
+              <Settings size={20} />
+            </button>
+          </div>
+          <div className="mt-4 flex items-center space-x-2">
+            <button
+              onClick={() => {
+                const date = new Date(selectedDate);
+                date.setDate(date.getDate() - 1);
+                setSelectedDate(date.toISOString().split("T")[0]);
+              }}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <div className="flex-1 relative">
+              <Calendar
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-full p-2 pl-10 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <button
+              onClick={() => {
+                const date = new Date(selectedDate);
+                date.setDate(date.getDate() + 1);
+                setSelectedDate(date.toISOString().split("T")[0]);
+              }}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-md mx-auto px-4 py-6">
+        {/* Date Summary */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-sm p-4 mb-6 text-white">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-lg font-semibold mb-0.5">
+                {formatDate(selectedDate)}
+              </h2>
+              <p className="text-blue-100 text-xs">
+                {notes.length} {notes.length === 1 ? "note" : "notes"}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-xl font-bold">
+                {notes
+                  .reduce((sum, note) => sum + note.amount, 0)
+                  .toLocaleString()}{" "}
+              </p>
+            </div>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-white text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition-colors shadow-sm"
+            >
+              <Plus size={20} />
+            </button>
+          </div>
+        </div>
+
+        {/* Notes List */}
+        <div className="space-y-6">
+          {notes.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-xl shadow-sm">
+              <p className="text-gray-500">No notes for this date</p>
+            </div>
+          ) : (
+            Object.entries(groupNotesByTimeRange(notes)).map(
+              ([range, rangeNotes]) =>
+                rangeNotes.length > 0 && (
+                  <div key={range} className="space-y-3">
+                    <div className="flex items-center space-x-2 text-gray-600 mb-2">
+                      {React.createElement(
+                        timeRangeLabels[range as keyof typeof timeRangeLabels]
+                          .icon,
+                        { size: 18 }
+                      )}
+                      <h3 className="font-medium">
+                        {
+                          timeRangeLabels[range as keyof typeof timeRangeLabels]
+                            .label
+                        }
+                      </h3>
+                    </div>
+                    {rangeNotes.map((note) => (
+                      <div
+                        key={note.id}
+                        className="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <div
+                                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                                style={{
+                                  backgroundColor: getCategoryColor(
+                                    note.category
+                                  ),
+                                }}
+                              >
+                                {React.createElement(
+                                  availableIcons[
+                                    getCategoryIcon(note.category) as IconName
+                                  ],
+                                  {
+                                    size: 18,
+                                    className: "text-white",
+                                  }
+                                )}
+                              </div>
+                              <span className="text-sm text-gray-600">
+                                {getCategoryName(note.category)}
+                              </span>
+                              <span className="text-sm text-gray-400">
+                                {note.time}
+                              </span>
+                            </div>
+                            <p className="font-medium text-gray-900">
+                              {note.description}
+                            </p>
+                            <p className="text-lg font-bold text-gray-900 mt-1">
+                              {note.amount.toLocaleString()} VND
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => handleDelete(note.id)}
+                            className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
+            )
+          )}
+        </div>
+      </div>
+
+      {/* Add Note Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Add New Note</h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Amount
+                  </label>
+                  <input
+                    type="text"
+                    value={amountInput}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setAmountInput(value);
+                      if (value === "" || /^\d*\.?\d*$/.test(value)) {
+                        setFormData({
+                          ...formData,
+                          amount: value === "" ? 0 : parseFloat(value),
+                        });
+                      }
+                    }}
+                    className="w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="0"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Time
+                  </label>
+                  <input
+                    type="time"
+                    value={formData.time}
+                    onChange={(e) =>
+                      setFormData({ ...formData, time: e.target.value })
+                    }
+                    className="w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <input
+                  type="text"
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                  className="w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Category
+                </label>
+                <select
+                  value={formData.category}
+                  onChange={(e) =>
+                    setFormData({ ...formData, category: e.target.value })
+                  }
+                  className="w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="">Select a category</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Save Note
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {isSettingsOpen && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Categories</h2>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => {
+                    const settings = {
+                      categories: categories,
+                      exportDate: new Date().toISOString(),
+                    };
+                    const blob = new Blob([JSON.stringify(settings, null, 2)], {
+                      type: "application/json",
+                    });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `money-note-settings-${
+                      new Date().toISOString().split("T")[0]
+                    }.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="text-blue-600 hover:text-blue-700 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                  title="Export Settings"
+                >
+                  <Download size={20} />
+                </button>
+                <label
+                  className="text-blue-600 hover:text-blue-700 p-2 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                  title="Import Settings"
+                >
+                  <input
+                    type="file"
+                    accept=".json"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          try {
+                            const settings = JSON.parse(
+                              event.target?.result as string
+                            );
+                            if (
+                              settings.categories &&
+                              Array.isArray(settings.categories)
+                            ) {
+                              // Clear existing categories
+                              categories.forEach((cat) =>
+                                deleteCategory(cat.id)
+                              );
+                              // Import new categories
+                              settings.categories.forEach(
+                                (cat: CustomCategory) => {
+                                  saveCategory(cat);
+                                }
+                              );
+                              setCategories(settings.categories);
+                            }
+                          } catch (error) {
+                            console.error("Error importing settings:", error);
+                            alert("Invalid settings file");
+                          }
+                        };
+                        reader.readAsText(file);
+                      }
+                    }}
+                  />
+                  <Upload size={20} />
+                </label>
+                <button
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleAddCategory} className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  value={newCategory.name}
+                  onChange={(e) =>
+                    setNewCategory({ ...newCategory, name: e.target.value })
+                  }
+                  className="w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Color
+                  </label>
+                  <input
+                    type="color"
+                    value={newCategory.color}
+                    onChange={(e) =>
+                      setNewCategory({ ...newCategory, color: e.target.value })
+                    }
+                    className="w-full h-12 p-1 border rounded-lg bg-gray-50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Icon
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={newCategory.icon}
+                      onChange={(e) =>
+                        setNewCategory({
+                          ...newCategory,
+                          icon: e.target.value as IconName,
+                        })
+                      }
+                      className="w-full h-12 p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                    >
+                      {Object.keys(availableIcons).map((iconName) => (
+                        <option key={iconName} value={iconName}>
+                          {iconName}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                      {React.createElement(
+                        availableIcons[newCategory.icon as IconName],
+                        { size: 18 }
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Add Category
+              </button>
+            </form>
+
+            <div className="space-y-3">
+              {categories.map((category) => (
+                <div
+                  key={category.id}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className="w-8 h-8 rounded-lg flex items-center justify-center"
+                      style={{ backgroundColor: category.color }}
+                    >
+                      {React.createElement(
+                        availableIcons[category.icon as IconName],
+                        {
+                          size: 18,
+                          className: "text-white",
+                        }
+                      )}
+                    </div>
+                    <span className="font-medium">{category.name}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => setEditingCategory(category)}
+                      className="text-blue-600 hover:text-blue-700 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Edit Category"
+                    >
+                      <Pencil size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCategory(category.id)}
+                      className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Delete Category"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Category Modal */}
+      {editingCategory && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white w-full max-w-md rounded-2xl p-6 mx-4 shadow-xl">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Edit Category</h2>
+              <button
+                onClick={() => setEditingCategory(null)}
+                className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (editingCategory) {
+                  saveCategory(editingCategory);
+                  setCategories(
+                    categories.map((cat) =>
+                      cat.id === editingCategory.id ? editingCategory : cat
+                    )
+                  );
+                  setEditingCategory(null);
+                }
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  value={editingCategory.name}
+                  onChange={(e) =>
+                    setEditingCategory({
+                      ...editingCategory,
+                      name: e.target.value,
+                    })
+                  }
+                  className="w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Color
+                  </label>
+                  <input
+                    type="color"
+                    value={editingCategory.color}
+                    onChange={(e) =>
+                      setEditingCategory({
+                        ...editingCategory,
+                        color: e.target.value,
+                      })
+                    }
+                    className="w-full h-12 p-1 border rounded-lg bg-gray-50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Icon
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={editingCategory.icon}
+                      onChange={(e) =>
+                        setEditingCategory({
+                          ...editingCategory,
+                          icon: e.target.value as IconName,
+                        })
+                      }
+                      className="w-full h-12 p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                    >
+                      {Object.keys(availableIcons).map((iconName) => (
+                        <option key={iconName} value={iconName}>
+                          {iconName}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                      {React.createElement(
+                        availableIcons[editingCategory.icon as IconName],
+                        { size: 18 }
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Save Changes
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </main>
   );
 }
