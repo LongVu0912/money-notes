@@ -43,9 +43,9 @@ type IconName = keyof typeof availableIcons;
 
 // Create a map of available icons
 const availableIcons = {
+  ShoppingBag,
   CupSoda,
   Hamburger,
-  ShoppingBag,
   Utensils,
   Fuel,
   Game,
@@ -243,19 +243,18 @@ export default function Home() {
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-sm p-4 mb-6 text-white">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-lg font-semibold mb-0.5">
+              <h1 className="text-lg font-semibold mb-0.5">
                 {formatDate(selectedDate)}
-              </h2>
-              <p className="text-blue-100 text-xs">
-                {notes.length} {notes.length === 1 ? "note" : "notes"}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-xl font-bold">
+              </h1>
+              <h4 className="text-lg font-medium mb-0.5">
                 {notes
                   .reduce((sum, note) => sum + note.amount, 0)
                   .toLocaleString()}{" "}
-              </p>
+                VND
+              </h4>
+              {/* <p className="text-blue-100 text-xs">
+                {notes.length} {notes.length === 1 ? "note" : "notes"}
+              </p> */}
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
@@ -548,7 +547,7 @@ export default function Home() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Color
@@ -692,7 +691,7 @@ export default function Home() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Color
