@@ -180,7 +180,7 @@ export default function StatisticsPage() {
 
           <div className="space-y-3">
             {Object.entries(monthlyStats.byCategory)
-              .sort((a, b) => a[1] - b[1])
+              .sort((a, b) => b[1] - a[1])
               .map(([categoryId, amount]) => {
                 const category = categories.find(
                   (cat) => cat.id === categoryId
