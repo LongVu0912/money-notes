@@ -241,12 +241,11 @@ export default function Home() {
   };
 
   const groupNotesByTimeRange = (notes: MoneyNote[]) => {
+    const sortByTime = (a: MoneyNote, b: MoneyNote) => a.time.localeCompare(b.time);
     const groups = {
-      morning: notes.filter((note) => getTimeRange(note.time) === "morning"),
-      afternoon: notes.filter(
-        (note) => getTimeRange(note.time) === "afternoon"
-      ),
-      evening: notes.filter((note) => getTimeRange(note.time) === "evening"),
+      morning: notes.filter((note) => getTimeRange(note.time) === "morning").sort(sortByTime),
+      afternoon: notes.filter((note) => getTimeRange(note.time) === "afternoon").sort(sortByTime),
+      evening: notes.filter((note) => getTimeRange(note.time) === "evening").sort(sortByTime),
     };
     return groups;
   };
