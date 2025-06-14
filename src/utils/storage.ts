@@ -42,7 +42,12 @@ export const getCategories = (): CustomCategory[] => {
 
 export const saveCategory = (category: CustomCategory): void => {
   const categories = getCategories();
-  categories.push(category);
+  const idx = categories.findIndex((c) => c.id === category.id);
+  if (idx !== -1) {
+    categories[idx] = category; // update existing
+  } else {
+    categories.push(category); // add new
+  }
   localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories));
 };
 

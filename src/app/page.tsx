@@ -13,6 +13,7 @@ import {
   getCategories,
   saveCategory,
   deleteCategory,
+  getMoneyNotes,
 } from "../utils/storage";
 import {
   Plus,
@@ -554,6 +555,7 @@ export default function Home() {
                   onClick={() => {
                     const settings = {
                       categories: categories,
+                      notes: getMoneyNotes(),
                       exportDate: new Date().toISOString(),
                     };
                     const blob = new Blob([JSON.stringify(settings, null, 2)], {
@@ -562,7 +564,7 @@ export default function Home() {
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement("a");
                     a.href = url;
-                    a.download = `money-note-settings-${
+                    a.download = `money-note-backup-${
                       new Date().toISOString().split("T")[0]
                     }.json`;
                     document.body.appendChild(a);
@@ -594,19 +596,23 @@ export default function Home() {
                             );
                             if (
                               settings.categories &&
-                              Array.isArray(settings.categories)
+                              Array.isArray(settings.categories) &&
+                              settings.notes &&
+                              Array.isArray(settings.notes)
                             ) {
-                              // Clear existing categories
-                              categories.forEach((cat) =>
-                                deleteCategory(cat.id)
-                              );
+                              // Clear existing categories and notes
+                              categories.forEach((cat) => deleteCategory(cat.id));
+                              getMoneyNotes().forEach((note) => deleteMoneyNote(note.id));
                               // Import new categories
-                              settings.categories.forEach(
-                                (cat: CustomCategory) => {
-                                  saveCategory(cat);
-                                }
-                              );
+                              settings.categories.forEach((cat: CustomCategory) => {
+                                saveCategory(cat);
+                              });
+                              // Import new notes
+                              settings.notes.forEach((note: MoneyNote) => {
+                                saveMoneyNote(note);
+                              });
                               setCategories(settings.categories);
+                              setNotes(settings.notes.filter((n: MoneyNote) => n.date === selectedDate));
                             }
                           } catch (error) {
                             console.error("Error importing settings:", error);
