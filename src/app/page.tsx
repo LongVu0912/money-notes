@@ -235,7 +235,7 @@ export default function Home() {
 
   const getTimeRange = (time: string) => {
     const [hours] = time.split(":").map(Number);
-    if (hours >= 6 && hours < 12) return "morning";
+    if (hours >= 0 && hours < 12) return "morning";
     if (hours >= 12 && hours < 18) return "afternoon";
     return "evening";
   };
@@ -251,9 +251,9 @@ export default function Home() {
   };
 
   const timeRangeLabels = {
-    morning: { label: "Morning (06:00 - 12:00)", icon: Sun },
+    morning: { label: "Morning (00:00 - 12:00)", icon: Sun },
     afternoon: { label: "Afternoon (12:00 - 18:00)", icon: Clock },
-    evening: { label: "Evening (18:00 - 06:00)", icon: Moon },
+    evening: { label: "Evening (18:00 - 24:00)", icon: Moon },
   };
 
   return (
