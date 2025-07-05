@@ -89,7 +89,7 @@ export default function StatisticsPage() {
 
   const handlePrevMonth = () => {
     const [year, month] = selectedMonth.split("-").map(Number);
-    const newDate = new Date(year, month - 2, 1);
+    const newDate = new Date(year, month - 1, 1);
     setSelectedMonth(newDate.toISOString().slice(0, 7));
   };
 
